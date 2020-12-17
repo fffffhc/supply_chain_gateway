@@ -1,0 +1,45 @@
+一，系统模块儿命名规范：
+
+保理 ：factoring
+
+企业 ：company
+企业相关 ：companyXxxxx
+
+系统字典 ：dict
+
+应收账款 ：receivable
+发票 ：fapiao
+合同 ：contract
+
+工作流：workflow
+
+融资产品：product
+
+授信：credit
+
+审批：review
+
+
+
+二，系统字典表
+
+1，产品相关字典表：
+p001：支持客户类型
+p002：还款到期提醒
+p003：还款方式
+p004：担保方式
+p005：服务费-收费方式
+p006：服务费-付费方
+p007：服务收-费标准
+p008：业务类型
+p009：融资方流程类型
+
+接口：/api-factoring/dict/product/get
+
+2，企业相关
+c001：企业标签
+c002：企业类型
+c003：行业类型
+
+接口：/api-factoring/dict/company/get
+

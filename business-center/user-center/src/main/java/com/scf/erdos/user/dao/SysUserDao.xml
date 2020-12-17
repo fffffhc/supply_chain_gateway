@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.user.dao.SysUserDao">
+
+	<update id="updateByOps" parameterType="com.scf.erdos.common.model.SysUser">
+		update sys_user
+		<set>
+			<if test="contacter != null and contacter != ''">
+				contacter = #{contacter,jdbcType=VARCHAR},
+			</if>
+			<if test="idNum != null and idNum != ''">
+				id_num = #{idNum},
+			</if>
+			<if test="sex != null">
+				sex = #{sex},
+			</if>
+			<if test="headImgUrl != null and headImgUrl != ''">
+				headImgUrl = #{headImgUrl},
+			</if>
+			<if test="companyAddr != null and companyAddr != ''">
+				company_addr = #{companyAddr},
+			</if>
+			<if test="phone != null and phone != ''">
+				phone = #{phone},
+			</if>
+			<if test="telephone != null and telephone != ''">
+				telephone = #{telephone},
+			</if>
+			<if test="email != null and email != ''">
+				email = #{email},
+			</if>
+			<if test="enabled != null">
+				enabled = #{enabled},
+			</if>
+			<if test="realname != null and realname !=''">
+				realname = #{realname},
+			</if>
+			<if test="post != null and post != ''">
+				post = #{post},
+			</if>
+
+			<if test="updateTime != null">
+				updateTime = #{updateTime,jdbcType=TIMESTAMP}
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<sql id="where">
+		<where>
+			<if test="id != null and id != ''">
+				and t.id like concat('%', #{id}, '%')
+			</if>
+			<if test="username != null and username != ''">
+				and t.username like concat('%', #{username}, '%')
+			</if>
+			<if test="nickname != null and nickname != ''">
+				and t.nickname like concat('%', #{nickname}, '%')
+			</if>
+			<if test="enabled != null and enabled != ''">
+				and t.enabled = #{enabled}
+			</if>
+			<if test="type != null and type != ''">
+				and t.type = #{type}
+			</if>
+			<if test="phone != null and phone != ''">
+				and t.phone = #{phone}
+			</if>
+			<if test="companyId != null and companyId != ''">
+				and t.company_id = #{companyId}
+			</if>
+			<if test="searchKey != null and searchKey != '' and searchKey=='user_id'">
+				and t.id  like concat('%', #{searchValue}, '%')   
+			</if>
+			
+			<if test="searchKey != null and searchKey != '' and searchKey=='username'">
+				and t.username  like concat('%', #{searchValue}, '%')   
+			</if>
+			
+			<if test="searchKey != null and searchKey != '' and searchKey=='nick_name'">
+				and t.nickname  like concat('%', #{searchValue}, '%')   
+			</if>
+			
+			<if test="searchKey != null and searchKey != '' and searchKey=='phone'">
+					and t.phone  like concat('%', #{searchValue}, '%')
+			</if>
+
+		</where>
+	</sql>
+	<select id="count" resultType="int">
+		select count(*) from sys_user t
+		<include refid="where" />
+	</select>
+
+	<select id="findList" resultType="com.scf.erdos.user.vo.SysUserVo">
+
+		SELECT tt.*,r.name roleName FROM (
+		SELECT t.id,t.username,t.enabled,t.realname,t.phone,sr.roleId,
+		DATE_FORMAT(t.createTime,'%Y-%c-%d %H:%i:%S') createTime
+		FROM sys_user t
+		LEFT JOIN sys_role_user sr ON sr.userId = t.id
+		<include refid="where" />
+		order by t.id desc
+
+		) AS tt
+		LEFT JOIN sys_role r ON r.id = tt.roleId
+
+		limit #{currentPage},#{pageSize}
+	</select>
+
+	<select id="findByUserIds" resultType="com.scf.erdos.common.model.SysUser">
+		select t.*
+		from sys_user t
+		where
+		t.id in
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="findById" resultType="com.scf.erdos.common.model.SysUser">
+
+		select tt.*,s.name roleName from (
+		select t.*,sr.roleId
+		from sys_user t
+		LEFT JOIN sys_role_user sr ON sr.userId = t.id
+		where
+		t.id  = #{id}
+		) as tt
+
+		left join sys_role s on tt.roleId = s.id
+
+
+	</select>
+
+	<select id="getRolesByCode" resultType="com.scf.erdos.common.model.SysRole" parameterType="Map">
+		select * from sys_role t where LEFT(t.code,LENGTH(#{code})) = #{code}
+	</select>
+
+	<update id="updateCompanyUser" parameterType="Map">
+		update sys_user
+		<set>
+			<if test="companyName != null and companyName != ''">
+				company_name = #{companyName},
+			</if>
+			<if test="creditNo != null and creditNo != ''">
+				credit_no = #{creditNo},
+			</if>
+			<if test="id != null and id != ''">
+				company_id = #{id}
+			</if>
+		</set>
+		where id = #{userId}
+	</update>
+
+	<insert id="setRole" parameterType="Map">
+		insert into sys_role_user (userId,roleId)
+		 select #{userId},id from sys_role where code = #{roleCode}
+	</insert>
+
+</mapper>

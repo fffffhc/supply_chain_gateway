@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.DocumentsDao">
+
+	<sql id="where1">
+		<where>
+			<if test="code != null and code != ''">
+				and t.code = #{code}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and t.company_name like concat('%', #{companyName}, '%')
+			</if>
+			<if test="beginDate != null and beginDate != ''">
+				and DATE_FORMAT(t.apply_time,'%Y-%m-%d %H:%i:%S') <![CDATA[>=]]> DATE_FORMAT(#{beginDate},'%Y-%m-%d %H:%i:%S')
+			</if>
+			<if test="endDate != null and endDate != ''">
+				and DATE_FORMAT(t.apply_time,'%Y-%m-%d %H:%i:%S') <![CDATA[<=]]> DATE_FORMAT(#{endDate},'%Y-%m-%d %H:%i:%S')
+			</if>
+		</where>
+	</sql>
+
+	<sql id="where2">
+		<where>
+			<if test="code != null and code != ''">
+			  t.code = #{code}
+			</if>
+		</where>
+	</sql>
+
+	<select id="countforListofDocuments" resultType="int" parameterType="map">
+		select count(*) from financing_info t
+		<include refid="where1" />
+	</select>
+
+	<select id="getListofDocuments" resultType="com.scf.erdos.factoring.vo.pay.ListofDocumentsVo">
+		select kk.*,ci.company_name,pi.name from (
+		select
+		t.code,
+		t.status,
+		t.apply_time,
+		t.customer_company_id,
+		t.product_id
+		from financing_info t
+		<include refid="where1" />
+		) as kk
+		left join company_info ci on kk.customer_company_id = ci.id
+		left join product_info pi on kk.product_id = pi.id
+	</select>
+
+	<select id="getCreditDecision" resultType="com.scf.erdos.factoring.vo.pay.CreditDecisionVo">
+		select kk.*,pc.code creditCode,pc.credit_line,pc.credit_start_time,pc.credit_end_time,pc.guarantee_type,pc.product_id,ci1.company_name fundingCompany,ci2.company_name customerCompany,pi.name from (
+		select
+		t.code,
+		t.credit_id
+		from financing_info t
+		<include refid="where2"/>
+		limit 1
+		) as kk
+		left join product_credit pc on kk.credit_id = pc.id
+		left join company_info ci1  on pc.funding_company_id = ci1.id
+		left join company_info ci2  on pc.customer_company_id = ci2.id
+		left join product_info pi   on pc.product_id = pi.id
+
+	</select>
+
+	<select id="getBasicContract" resultType="String">
+		select contract_file from receivable_contract t
+		<where>
+			<if test="code != null and code != ''">
+				t.code = #{code}
+			</if>
+		</where>
+	</select>
+
+</mapper>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.ContractVarDao">
+    <select id="getFinancing" resultType="com.scf.erdos.factoring.contract.model.businessData.Financing" parameterType="Integer">
+         select * from financing_info
+         where id = #{id}
+    </select>
+
+    <select id="getProduct" resultType="com.scf.erdos.factoring.contract.model.businessData.Product" parameterType="Integer">
+        select t.*,k.head,k.type,k.product_type from product_info t
+        left join project_contract_code k on t.id = k.product_id
+        where t.id = #{id}
+    </select>
+
+    <select id="getContractTemplates" parameterType="Integer" resultType="com.scf.erdos.factoring.contract.model.businessData.ContractTemplate">
+        select * from product_contract_template
+        where id in (select contract_template_id from product_contract where product_id = #{id})
+    </select>
+
+    <insert id="saveContract" parameterType="com.scf.erdos.factoring.contract.model.businessData.UserContract">
+         insert into online_contract(credit_code,financing_code,customer_company_id,funding_company_id,
+            signup_company_id,contract_id,contract_name,contract_url,product_id,product_name,contract_create_time,create_time)
+            values(#{creditCode},#{financingCode},#{customerCompanyId},#{fundingCompanyId},#{signupCompanyId},#{contractId},
+            #{contractName},#{contractUrl},#{productId},#{productName},#{contractCreateTime},now())
+    </insert>
+</mapper>

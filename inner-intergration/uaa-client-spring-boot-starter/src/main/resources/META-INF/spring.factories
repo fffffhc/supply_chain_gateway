@@ -1,0 +1,8 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.scf.erdos.uaa.client.authorize.provider.AuthAuthorizeConfigProvider,\
+com.scf.erdos.uaa.client.authorize.OpenAuthorizeConfigManager,\
+com.scf.erdos.uaa.client.config.ExceptionHandlerAdvice,\
+com.scf.erdos.common.feign.FeignInterceptorConfig,\
+com.scf.erdos.uaa.client.config.SecurityHandlerConfig,\
+com.scf.erdos.uaa.client.config.TokenStoreConfig,\
+com.scf.erdos.uaa.client.UAAClientAutoConfig

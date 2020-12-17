@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.ContractTemplateDao">
+
+	<sql id="where">
+		<where>
+			<if test="companyId != null and companyId != ''">
+				and t.company_id = #{companyId}
+			</if>
+		</where>
+	</sql>
+
+	<select id="count" resultType="int">
+		select count(*) from product_contract_template t
+		<include refid="where" />
+	</select>
+
+	<select id="getContractTemplates" resultType="com.scf.erdos.factoring.vo.contract.ContractTemplateVo">
+		select
+		t.*
+		from product_contract_template t
+		<include refid="where" />
+		order by t.id desc
+		limit #{currentPage},#{pageSize}
+	</select>
+
+	<insert id="add" parameterType="com.scf.erdos.factoring.model.contract.ContractTemplate">
+		insert into product_contract_template(contract_name,contract_template_url,source_html,
+		var_group_list_str,type,user_id,company_id,template_explain,create_time,update_time)
+		values(#{contractName},#{contractTemplateUrl},#{sourceHtml},#{varGroupListStr},#{type},
+		#{userId},#{companyId},#{templateExplain},now(),now())
+	</insert>
+
+	<select id="getContractNameByName" parameterType="com.scf.erdos.factoring.model.contract.ContractTemplate" resultType="String">
+		select contract_name from product_contract_template t
+		where 1=1
+			<if test="id != null and id != ''">
+				and t.id != #{id}
+			</if>
+			<if test="contractName != null and contractName != ''">
+				and t.contract_name = #{contractName}
+			</if>
+	</select>
+
+	<update id="update" parameterType="com.scf.erdos.factoring.model.contract.ContractTemplate">
+		update product_contract_template set
+			contract_name = #{contractName},
+			contract_template_url = #{contractTemplateUrl},
+			source_html = #{sourceHtml},
+			var_group_list_str = #{varGroupListStr},
+			type = #{type},
+			template_explain = #{templateExplain},
+			update_time = now()
+		where id = #{id}
+	</update>
+
+</mapper>

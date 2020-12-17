@@ -1,0 +1,12 @@
+${AnsiColor.BRIGHT_BLUE}:: scf-erdos-platform 🤓 :: Running Spring Boot ${spring-boot.version} ::
+
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+  ${AnsiColor.GREEN}       ${AnsiColor.GREEN}
+
+  ${AnsiColor.DEFAULT}项目地址: https://xxxx
+  ${AnsiColor.DEFAULT}开发文档: https://www.xxxxx
+  ${AnsiColor.DEFAULT}技术博客: https://xxxxx

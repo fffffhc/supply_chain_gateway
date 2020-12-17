@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.CredictDao">
+    <insert id="add" parameterType="com.scf.erdos.factoring.model.credit.ProductCredit">
+		insert into product_credit(
+            code,
+            product_id,
+            credit_company_id,
+            guarantee_type,
+            credit_start_time,
+            credit_end_time,
+            credit_line,
+            customer_level,
+            customer_company_id,
+            total_pre_year,
+            is_dispute,
+            is_supply,
+            remit_frequency,
+            other_file,
+            user_id,
+            create_time)
+        values(
+            #{code},
+            #{productId},
+            #{creditCompanyId},
+            #{guaranteeType},
+            #{creditStartTime},
+            #{creditEndTime},
+            #{creditLine},
+            #{customerLevel},
+            #{customerCompanyId},
+            #{totalPreYear},
+            #{isDispute},
+            #{isSupply},
+            #{remitFrequency},
+            #{otherFile},
+            #{userId},
+            now()
+		)
+	</insert>
+
+    <sql id="where">
+        <where>
+            <if test="fundingCompanyId != null and fundingCompanyId != ''">
+                and t.funding_company_id = #{fundingCompanyId}
+            </if>
+            <if test="customerCompanyId != null and customerCompanyId != ''">
+                and t.customer_company_id = #{customerCompanyId}
+            </if>
+            <if test="status != null and status != ''">
+                and t.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="count" parameterType="map" resultType="Integer">
+        select count(*) from product_credit t
+        <include refid="where" />
+    </select>
+
+    <select id="getCredicts" parameterType="map" resultType="com.scf.erdos.factoring.vo.credit.CreditPageVo">
+        select t.*,k.company_name fundingCompanyName from product_credit t
+        left join company_info k on k.id = t.funding_company_id
+        <include refid="where" />
+    </select>
+
+    <select id="getCreditVoById" parameterType="Integer" resultType="com.scf.erdos.factoring.vo.credit.CreditVo">
+        select t.*,k.company_name fundingCompanyName,m.name productName,m.is_credit from product_credit t
+        left join company_info k on k.id = t.funding_company_id
+        left join product_info m on m.id = t.product_id
+        where t.id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.scf.erdos.factoring.model.credit.ProductCredit">
+        update product_credit
+        <set>
+            <if test="guaranteeType != null and guaranteeType != ''">
+                guarantee_type = #{guaranteeType},
+            </if>
+            <if test="creditLine != null and creditLine != ''">
+                credit_line = #{creditLine},
+            </if>
+            <if test="creditStartTime != null and creditStartTime != ''">
+                credit_start_time = #{creditStartTime},
+            </if>
+            <if test="creditEndTime != null and creditEndTime != ''">
+                credit_end_time = #{creditEndTime},
+            </if>
+            <if test="customerLevel != null and customerLevel != ''">
+                customer_level = #{customerLevel},
+            </if>
+            <if test="totalPreYear != null and totalPreYear != ''">
+                total_pre_year = #{totalPreYear},
+            </if>
+            <if test="isDispute != null and isDispute != ''">
+                is_dispute = #{isDispute},
+            </if>
+            <if test="isSupply != null and isSupply != ''">
+                is_supply = #{isSupply},
+            </if>
+            <if test="buyerRate != null and buyerRate != ''">
+                buyer_rate = #{buyerRate},
+            </if>
+            <if test="remitFrequency != null and remitFrequency != ''">
+                remit_frequency = #{remitFrequency},
+            </if>
+            <if test="otherFile != null and otherFile != ''">
+                other_file = #{otherFile},
+            </if>
+            <if test="creditStatus != null and creditStatus != ''">
+                status = #{creditStatus}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

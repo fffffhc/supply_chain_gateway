@@ -1,0 +1,114 @@
+{
+	"RC_01":{
+		"ps":"融资信息表组:",
+		"vars":[
+			{"code":"001", "name":"融资合同编号",                         "el":"${contractParams.contractCode}"},
+			{"code":"002", "name":"融资合同日期",                         "el":""},
+			{"code":"003", "name":"转让总金额小写",                       "el":"${financing.transferFinancing}"},
+			{"code":"004", "name":"转让总金额大写", 			          "el":"${financing.transferFinancingToCN}"},
+			{"code":"005", "name":"融资审批日（说明：审批通过当日）",     "el":"${financing.auditedDate}"},
+			{"code":"006", "name":"应收账款到期日", 		              "el":"${financing.receivableTime}"},
+			{"code":"007", "name":"保理服务费小写", 		              "el":"${financing.factoringService}"},
+			{"code":"008", "name":"保理服务费大写", 		              "el":"${financing.factoringServiceToCN}"},
+			{"code":"009", "name":"融资利率", 		                      "el":"${financing.financingRate}"},
+			{"code":"010", "name":"融资利息小写", 		                  "el":"${}"},
+			{"code":"011", "name":"融资利息大写", 		                  "el":"${}"},
+			{"code":"012", "name":"收款账户名", 	                      "el":"${financing.accountName}"},
+			{"code":"013", "name":"收款账号", 		                      "el":"${financing.companyAccount}"},
+			{"code":"014", "name":"收款账户开户行名称", 		          "el":"${financing.bankBranch}"},
+			{"code":"015", "name":"融资批次（说明：同一授信项下第x笔融资，其中x为融资批次）",
+				                                                          "el":"${}"},
+			{"code":"016", "name":"融资金额小写", 		                  "el":"${financing.amountFinancing}"},
+			{"code":"017", "name":"融资金额大写", 		                  "el":"${financing.amountFinancingToCN}"},
+			{"code":"018", "name":"融资到期日", 		                  "el":"${financing.financingEndTime}"},
+			{"code":"019", "name":"保理服务费率", 		                  "el":"${financing.factoringServiceRate}"}
+		]
+	},
+	"YS_02":{
+		"ps":"应收账款信息表组",
+		"vars":[
+			{"code":"010", "name":"应收账款金额小写",                                   "el":"${receivable.yszkAmount}"},
+			{"code":"011", "name":"应收账款金额大写", 				                    "el":"${receivable.yszkAmountToCN}"},
+			{"code":"012", "name":"应收账款明细件数（说明：发票张数+其他单据张数）", 	"el":"${contractParams.receivableDetailSize}"},
+			{"code":"013", "name":"基础合同名称", 				                        "el":"${contractParams.basicContractName}"},
+				{"code":"014", "name":"基础合同件数,", 				                        "el":"${contractParams.basicContractSize}"},
+
+			{"code":"001", "name":"基础交易合同明细表（table）", 	"el":"", "fun":"tr"},
+			{"code":"001_001", "name":"序号", 						"el":"${( obj.index )!'--'}", "fun":"replace"},
+			{"code":"001_002", "name":"合同编号", 					"el":"${( obj.contractCode )!'--'}", "fun":"replace"},
+			{"code":"001_003", "name":"合同名称", 					"el":"${( obj.contractName )!'--'}", "fun":"replace"},
+			{"code":"001_004", "name":"商品名称", 					"el":"${( obj.goods )!'--'}", "fun":"replace"},
+			{"code":"001_005", "name":"买方名称", 					"el":"${( obj.buyerCompany )!'--'}", "fun":"replace"},
+			{"code":"001_006", "name":"签署日期", 					"el":"${( obj.contractDate )!'--'}", "fun":"replace"},
+
+			{"code":"002", "name":"发票明细表（table）", 	"el":"", "fun":"tr"},
+			{"code":"002_001", "name":"序号", 				"el":"${( obj.index )!'--'}", "fun":"replace"},
+			{"code":"002_002", "name":"买方名称", 			"el":"${( obj.buyerCompany )!'--'}", "fun":"replace"},
+			{"code":"002_003", "name":"发票日期", 			"el":"${( obj.fpDate?string )!'--'}", "fun":"replace"},
+			{"code":"002_004", "name":"发票号", 			"el":"${( obj.fpNo )!'--'}", "fun":"replace"},
+			{"code":"002_005", "name":"金额（元）", 		"el":"${( obj.fpAmount )!'--'}", "fun":"replace"},
+			{"code":"020", "name":"发票金额合计", 			"el":"${receivable.fapiaoAmount}"},
+			{"code":"021", "name":"发票单据张数", 			"el":"${contractParams.fapiaoSize}"},
+
+			{"code":"003", "name":"其它单据明细表（table）",    "el":"", "fun":"tr"},
+			{"code":"003_001", "name":"序号",                   "el":"${( obj.index )!'--'}", "fun":"replace"},
+			{"code":"003_002", "name":"买方名称", 				"el":"${( obj.buyerCompany )!'--'}", "fun":"replace"},
+			{"code":"003_003", "name":"单据号",   				"el":"${( obj.billCode )!'--'}", "fun":"replace"},
+			{"code":"003_004", "name":"单据类型", 				"el":"${( obj.billType )!'--'}", "fun":"replace"},
+		    {"code":"003_005", "name":"单据日期", 				"el":"${( obj.billDate )!'--'}", "fun":"replace"},
+			{"code":"003_006", "name":"单价",                   "el":"${( obj.unitPrice )!'--'}", "fun":"replace"},
+			{"code":"003_007", "name":"净重",                   "el":"${( obj.netWeight )!'--'}", "fun":"replace"},
+			{"code":"003_008", "name":"金额",                   "el":"${( obj.amount )!'--'}", "fun":"replace"},
+			{"code":"030", "name":"其它单据金额合计",           "el":"${receivable.billAmount}"},
+			{"code":"031", "name":"其它单据张数",               "el":"${contractParams.otherBillSize}"}
+		]
+	},
+	"SC_03":{
+		"ps":"授信信息表组",
+		"vars":[
+			{"code":"001", "name":"授信额度小写",               "el":"${credit.creditLine}"},
+			{"code":"002", "name":"授信额度大写", 				"el":"${credit.creditLineToCN}"},
+			{"code":"003", "name":"授信额度到期日",       	    "el":"${credit.creditEndTime}"}
+		]
+	},
+
+	"RZ_JG_04":{
+		"ps":"融资机构信息表组",
+		"vars":[
+			{"code":"001", "name":"融资方名称",             "el":"${customerCompany.companyName}"},
+			{"code":"002", "name":"融资方统一社会信用代码", "el":"${customerCompany.creditNo}"},
+			{"code":"003", "name":"融资方开户行名称",       "el":"${}"},
+			{"code":"004", "name":"融资方开户行行号", 		"el":"${}"},
+			{"code":"005", "name":"融资方银行账户号", 		"el":"${}"},
+			{"code":"006", "name":"融资方银行账户名", 		"el":"${}"},
+			{"code":"007", "name":"融资方注册地址", 		"el":"${customerCompany.registeredAddr}"},
+			{"code":"008", "name":"融资方通讯地址", 		"el":"${customerCompany.letterAddr}"},
+			{"code":"009", "name":"融资方法人姓名", 		"el":"${customerCompany.legalName}"},
+			{"code":"010", "name":"融资方法人身份证号", 	"el":"${customerCompany.legalIdNo}"},
+			{"code":"011", "name":"融资方法人电话", 		"el":"${customerCompany.legalMobile}"},
+			{"code":"012", "name":"融资方联系人姓名", 		"el":"${customerCompany.contacterName}"},
+			{"code":"013", "name":"融资方联系人电话", 		"el":"${customerCompany.contacterMobile}"},
+			{"code":"014", "name":"融资方联系人邮箱", 		"el":"${customerCompany.contacterEmail}"}
+		]
+	},
+
+	"ZJ_JG_05":{
+		"ps":"资金机构信息表组",
+		"vars":[
+			{"code":"001", "name":"资金方名称",             "el":"${fundingCompany.companyName}"},
+			{"code":"002", "name":"资金方统一社会信用代码", "el":"${fundingCompany.creditNo}"},
+			{"code":"003", "name":"资金方开户行名称",       "el":"${fundingCompany.bankBranch}"},
+			{"code":"004", "name":"资金方开户行行号", 		"el":"${fundingCompany.companyAccount}"},
+			{"code":"005", "name":"资金方银行账户号", 		"el":"${fundingCompany.accountName}"},
+			{"code":"006", "name":"资金方银行账户名", 		"el":"${fundingCompany.bankAcctNo}"},
+			{"code":"007", "name":"资金方注册地址", 		"el":"${fundingCompany.registeredAddr}"},
+			{"code":"008", "name":"资金方通讯地址", 		"el":"${fundingCompany.letterAddr}"},
+			{"code":"009", "name":"资金方法人姓名", 		"el":"${fundingCompany.legalName}"},
+			{"code":"010", "name":"资金方法人身份证号", 	"el":"${fundingCompany.legalIdNo}"},
+			{"code":"011", "name":"资金方法人电话", 		"el":"${fundingCompany.legalMobile}"},
+			{"code":"012", "name":"资金方联系人姓名", 		"el":"${fundingCompany.contacterName}"},
+			{"code":"013", "name":"资金方联系人电话", 		"el":"${fundingCompany.contacterMobile}"},
+			{"code":"014", "name":"资金方联系人邮箱", 		"el":"${fundingCompany.contacterEmail}"}
+		]
+	}
+}

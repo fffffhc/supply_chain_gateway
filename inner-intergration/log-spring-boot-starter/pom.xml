@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.scf.erdos</groupId>
+        <artifactId>inner-intergration</artifactId>
+        <version>2.0.1</version>
+    </parent>
+    <artifactId>log-spring-boot-starter</artifactId>
+    <description>日志支撑</description>
+
+    <dependencies>
+        <!-- log-spring-boot-starter在启用多数据源记表的方式，需要AOP记录当前操作人员
+        LoginAppUser，这个类在公用模块中定义，注意这里的 optional = true-->
+        <dependency>
+            <groupId>com.scf.erdos</groupId>
+            <artifactId>common-spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 日志中心的标准做法是采用elk 异步处理存储es，不排除存在数据库的情况。
+        采用db-spring-boot-starter就是记录一组通用的记表策略，注意这里有
+        optional = true。想想 erueka-server中也需要日志规范，但不需要配置数据源。这就是
+        optional = true的使用技巧，maven 依赖传递。-->
+        <dependency>
+            <groupId>com.scf.erdos</groupId>
+            <artifactId>db-spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- apo -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 链路跟踪 -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-sleuth-core -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

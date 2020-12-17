@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.ReceivableDao">
+    <sql id="where">
+        <where>
+
+            <if test="companyId != null and companyId != ''">
+                and t.company_id = #{companyId}
+            </if>
+            <if test="buyerCompany != null and buyerCompany != ''">
+                and t.buyer_company like concat('%', #{buyerCompany}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and t.status like concat('%', #{status}, '%')
+            </if>
+            <if test="code != null and code != ''">
+                and t.code = #{code}
+            </if>
+            <if test="fpNo != null and fpNo != ''">
+                and t.id = (SELECT t.yszk_id FROM receivable_fapiao t WHERE t.fp_no = #{fpNo})
+            </if>
+            <if test="beginTime != null and beginTime != ''">
+                and t.create_time &gt; DATE_FORMAT(beginTime,'%Y-%c-%d %H:%i:%S')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and t.create_time &lt; DATE_FORMAT(endTime,'%Y-%c-%d %H:%i:%S')
+            </if>
+        </where>
+    </sql>
+
+    <select id="count" resultType="int">
+        select count(*) from receivable_info t
+        <include refid="where" />
+    </select>
+
+    <select id="getAllYszks" resultType="com.scf.erdos.factoring.vo.yszk.ReceivablePageVo">
+        select
+        t.id,
+        t.code,
+        DATE_FORMAT(t.create_time,'%Y-%c-%d %H:%i:%S') create_time,
+        t.buyer_company,
+        t.status,
+        t.tag,
+        t.user_id
+        from receivable_info t
+        <include refid="where" />
+        order by t.id desc
+        limit #{currentPage},#{pageSize}
+    </select>
+
+    <insert id="add" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into receivable_info(
+        code,
+        tag,
+        buyer_company,
+        yszk_amount,
+        fapiao_amount,
+        bill_amount,
+        company_id,
+        user_id,
+        create_time
+        )
+        values(
+        #{code},
+        #{tag},
+        #{buyerCompany},
+        #{yszkAmount},
+        #{fapiaoAmount},
+        #{billAmount},
+        #{companyId},
+        #{userId},
+        now()
+        )
+    </insert>
+
+    <insert id="addContracts" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableInfo" >
+        insert into receivable_contract
+        ( yszk_id,contract_name,contract_code,contract_date,goods,unit_price,contract_file,buyer_company,create_time)
+        values
+        <foreach collection="contractList" item="item" index="index" separator=",">
+            (
+            #{id},
+            #{item.contractName},
+            #{item.contractCode},
+            #{item.contractDate},
+            #{item.goods},
+            #{item.unitPrice},
+            #{item.contractFile},
+            #{item.buyerCompany},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <select id="getFapiaoByFpNo" resultType="com.scf.erdos.factoring.vo.yszk.ReceivableFapiaoVo">
+        select
+        t.fp_no
+        from receivable_fapiao t
+        where
+            t.fp_no in
+            <foreach collection="list" item="item" index="" open="(" separator = "," close=")">
+                #{item.fpNo}
+            </foreach>
+    </select>
+
+    <select id="getFapiao" resultType="com.scf.erdos.factoring.vo.yszk.ReceivableFapiaoVo" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableFapiao">
+        select
+        t.fp_no
+        from receivable_fapiao t
+        where
+        t.fp_no = #{fpNo}
+        <if test="id != null and id != ''">
+            and t.id != #{id}
+        </if>
+    </select>
+
+    <insert id="addFapiaos" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableInfo" >
+        insert into receivable_fapiao
+        ( yszk_id,fp_no,fp_code,fp_date,fp_amount,buyer_company,create_time)
+        values
+        <foreach collection="fapiaoList" item="item" index="index" separator=",">
+            (
+            #{id},
+            #{item.fpNo},
+            #{item.fpCode},
+            #{item.fpDate},
+            #{item.fpAmount},
+            #{item.buyerCompany},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <select id="getOtherBillByBillCode" resultType="com.scf.erdos.factoring.vo.yszk.ReceivableOtherBillVo" parameterType="List">
+        select
+        t.bill_code
+        from receivable_other_bill t
+        where
+            t.bill_code in
+            <foreach collection="list" item="item" index="" open="(" separator = "," close=")">
+                #{item.billCode}
+            </foreach>
+    </select>
+
+    <select id="getOtherBill" resultType="com.scf.erdos.factoring.vo.yszk.ReceivableOtherBillVo" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableOtherBill">
+         select
+        t.bill_code
+        from receivable_other_bill t
+        where
+            t.bill_code = #{billCode}
+        <if test="id != null and id != ''">
+            and t.id != #{id}
+        </if>
+    </select>
+
+    <insert id="addOtherBills" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableInfo" >
+        insert into receivable_other_bill
+        ( yszk_id,bill_code,bill_type,bill_date,unit_price,net_weight,amount,buyer_company,create_time)
+        values
+        <foreach collection="otherBillList" item="item" index="index" separator=",">
+            (
+            #{id},
+            #{item.billCode},
+            #{item.billType},
+            #{item.billDate},
+            #{item.unitPrice},
+            #{item.netWeight},
+            #{item.amount},
+            #{item.buyerCompany},
+            now()
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateYszkInfo" parameterType="com.scf.erdos.factoring.model.receivable.ReceivableInfo">
+        update receivable_info
+        <set>
+            <if test="code != null and code != ''">
+                code = #{code},
+            </if>
+            <if test="tag != null and tag != ''">
+                tag = #{tag},
+            </if>
+            <if test="buyerCompany != null and buyerCompany != ''">
+                buyer_company = #{buyerCompany},
+            </if>
+            <if test="yszkAmount != null and yszkAmount != ''">
+                yszk_amount = #{yszkAmount},
+            </if>
+            <if test="fapiaoAmount != null and fapiaoAmount != ''">
+                fapiao_amount = #{fapiaoAmount},
+            </if>
+            <if test="billAmount != null and billAmount != ''">
+                bill_amount = #{billAmount},
+            </if>
+            <if test="userId != null and userId != ''">
+                update_user_id = #{userId},
+            </if>
+                update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

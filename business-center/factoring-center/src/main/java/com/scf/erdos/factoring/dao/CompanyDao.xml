@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.CompanyDao">
+
+	<sql id="where">
+		<where>
+			<if test="companyName != null and companyName != ''">
+				and t.company_name like concat('%', #{companyName}, '%')
+			</if>
+			<if test="creditNo != null and creditNo != ''">
+				and t.credit_no = #{creditNo}
+			</if>
+			<if test="status != null and status != ''">
+				and t.status = #{status}
+			</if>
+		</where>
+	</sql>
+
+	<select id="count" resultType="int">
+		select count(*) from company_info t
+		<include refid="where" />
+	</select>
+
+	<select id="getAllCompany" resultType="com.scf.erdos.factoring.vo.company.CompanyPageVo">
+		select
+		t.id,
+		t.company_label_1,
+		d.name company_label_1_name,
+		t.company_label_2,
+		t.credit_no,
+		t.company_name,
+		t.registered_time,
+		t.contacter_name,
+		t.contacter_mobile,
+		t.user_id,
+		t.status,
+		k.status_desc
+		from company_info t
+		left join company_dict_list d on t.company_label_1 = d.code AND d.type = 'c001'
+		LEFT JOIN (SELECT * FROM company_audit_info WHERE id IN (SELECT MAX(id) FROM company_audit_info GROUP BY company_id)) k ON k.company_id = t.id
+		<include refid="where" />
+		order by t.id desc
+		limit #{currentPage},#{pageSize}
+	</select>
+
+	<select id="getCompanyInfo" resultType="com.scf.erdos.factoring.vo.company.CompanyInfoVo">
+		SELECT
+		t.id,t.company_name,t.company_type,t.company_label_1,
+		dcr.name companyTypeName,t.industry_type,
+		dic.name industryTypeName,t.business_scale,
+		t.business_scope,t.registered_addr,t.letter_addr,
+		DATE_FORMAT(t.registered_time,'%Y-%m-%d %H:%i:%S') registered_time,
+		t.registered_capital,t.company_email,t.company_fax,t.credit_no,
+		t.business_lic,t.company_account_addr,t.company_account,t.account_name,t.bank_branch,
+		t.bank_num,t.fapiao_info,t.legal_name,
+		t.legal_id_front,t.legal_id_other,t.legal_id_no,t.legal_mobile,t.contro_man_info,
+		t.shareholder_name_1,t.shareholder_capital_1,t.shareholder_name_2,t.shareholder_capital_2,
+		t.contacter_name,t.contacter_mobile,t.contacter_wechat,t.contacter_position,t.contacter_email,
+		t.financial_reports,t.audit_report,t.company_credit_report,t.historical_trade_contract,t.user_id,t.other,
+		(SELECT status_desc FROM company_audit_info WHERE company_id = #{id} ORDER BY id DESC LIMIT 1) AS status_desc
+		FROM company_info t
+		LEFT JOIN company_dict_list dcr ON t.company_type = dcr.code AND dcr.type = 'c001'
+		LEFT JOIN company_dict_list dic ON t.industry_type = dic.code AND dcr.type = 'c003'
+		where
+		t.id = #{id}
+	</select>
+
+	<select id="getCompanyByCreditNoAndName" resultType="com.scf.erdos.factoring.vo.company.CompanyInfoVo">
+		SELECT
+		t.id,t.company_name,t.company_type,
+		dcr.name companyTypeName,t.industry_type,
+		dic.name industryTypeName,t.business_scale,
+		t.business_scope,t.registered_addr,t.letter_addr,
+		DATE_FORMAT(t.registered_time,'%Y-%m-%d %H:%i:%S') registered_time,
+		t.registered_capital,t.company_email,t.company_fax,t.credit_no,
+		t.business_lic,t.company_account_addr,t.company_account,t.fapiao_info,t.legal_name,
+		t.legal_id_front,t.legal_id_other,t.legal_id_no,t.legal_mobile,t.contro_man_info,
+		t.shareholder_name_1,t.shareholder_capital_1,t.shareholder_name_2,t.shareholder_capital_2,
+		t.contacter_name,t.contacter_mobile,t.contacter_wechat,t.contacter_position,t.contacter_email,
+		t.financial_reports,t.audit_report,t.company_credit_report,t.historical_trade_contract,t.other
+		FROM company_info t
+		LEFT JOIN company_dict_list dcr ON t.company_type = dcr.code and dcr.type = 'c001'
+		LEFT JOIN company_dict_list dic ON t.industry_type = dic.code and dcr.type = 'c003'
+		where 1=1
+		<if test="companyName != null and companyName != ''">
+			and t.company_name = #{companyName}
+		</if>
+		<if test="creditNo != null and creditNo != ''">
+			or t.credit_no = #{creditNo}
+		</if>
+	</select>
+
+	<insert id="add" parameterType="Map">
+		insert into company_info(
+		company_name,
+		company_type,
+		industry_type,
+		business_scale,
+		business_scope,
+		registered_addr,
+		letter_addr,
+		registered_time,
+		registered_capital,
+		company_email,
+		company_fax,
+		credit_no,
+		business_lic,
+		company_account_addr,
+		company_account,
+		fapiao_info,
+		legal_name,
+		legal_id_front,
+		legal_id_other,
+		legal_id_no,
+		legal_mobile,
+		contro_man_info,
+		shareholder_name_1,
+		shareholder_capital_1,
+		shareholder_name_2,
+		shareholder_capital_2,
+		contacter_name,
+		contacter_mobile,
+		contacter_wechat,
+		contacter_position,
+		contacter_email,
+		financial_reports,
+		audit_report,
+		company_credit_report,
+		historical_trade_contract,
+		other,
+		user_id,
+		source_type,
+		create_time)
+		values(
+		#{companyName},
+		#{companyType},
+		#{industryType},
+		#{businessScale},
+		#{businessScope},
+		#{registeredAddr},
+		#{letterAddr},
+		#{registeredTime},
+		#{registeredCapital},
+		#{companyEmail},
+		#{companyFax},
+		#{creditNo},
+		#{businessLic},
+		#{companyAccountAddr},
+		#{companyAccount},
+		#{fapiaoInfo},
+		#{legalName},
+		#{legalIdFront},
+		#{legalIdOther},
+		#{legalIdNo},
+		#{legalMobile},
+		#{controManInfo}
+		#{shareholderName1},
+		#{shareholderCapital1},
+		#{shareholderName2},
+		#{shareholderCapital2},
+		#{contacterName},
+		#{contacterMobile},
+		#{contacterWechat},
+		#{contacterPosition},
+		#{contacterEmail},
+		#{financialReports},
+		#{auditReport},
+		#{companyCreditReport},
+		#{historicalTradeContract},
+		#{other},
+		#{userId},
+		#{sourceType},
+		#{now()}
+		)
+	</insert>
+
+	<update id="update" parameterType="Map">
+		update company_info
+		<set>
+			<if test="companyLabel1 != null and companyLabel1 != ''">
+				company_label_1 = #{companyLabel1},
+			</if>
+			<if test="companyLabel2 != null and companyLabel2 != ''">
+				company_label_2 = #{companyLabel2},
+			</if>
+			<if test="companyName != null and companyName != ''">
+				company_name = #{companyName},
+			</if>
+			<if test="companyType != null and companyType != ''">
+				company_type = #{companyType},
+			</if>
+			<if test="industryType != null and industryType != ''">
+				industry_type = #{industryType},
+			</if>
+			<if test="businessScale != null and businessScale != ''">
+				business_scale = #{businessScale},
+			</if>
+			<if test="businessScope != null and businessScope != ''">
+				business_scope = #{businessScope},
+			</if>
+			<if test="registeredAddr != null and registeredAddr != ''">
+				registered_addr = #{registeredAddr},
+			</if>
+			<if test="letterAddr != null and letterAddr != ''">
+				letter_addr = #{letterAddr},
+			</if>
+			<if test="registeredTime != null and registeredTime != ''">
+				registered_time = #{registeredTime},
+			</if>
+			<if test="registeredCapital != null and registeredCapital != ''">
+				registered_capital = #{registeredCapital},
+			</if>
+			<if test="companyEmail != null and companyEmail != ''">
+				company_email = #{companyEmail},
+			</if>
+			<if test="companyFax != null and companyFax != ''">
+				company_fax = #{companyFax},
+			</if>
+			<if test="creditNo != null and creditNo != ''">
+				credit_no = #{creditNo},
+			</if>
+			<if test="businessLic != null and businessLic != ''">
+				business_lic = #{businessLic},
+			</if>
+			<if test="companyAccountAddr != null and companyAccountAddr != ''">
+				company_account_addr = #{companyAccountAddr},
+			</if>
+			<if test="companyAccount != null and companyAccount != ''">
+				company_account = #{companyAccount},
+			</if>
+			<if test="fapiaoInfo != null and fapiaoInfo != ''">
+				fapiao_info = #{fapiaoInfo},
+			</if>
+			<if test="legalName != null and legalName != ''">
+				legal_name = #{legalName},
+			</if>
+			<if test="legalIdFront != null and legalIdFront != ''">
+				legal_id_front = #{legalIdFront},
+			</if>
+			<if test="legalIdOther != null and legalIdOther != ''">
+				legal_id_other = #{legalIdOther},
+			</if>
+			<if test="legalIdNo != null and legalIdNo != ''">
+				legal_id_no = #{legalIdNo},
+			</if>
+			<if test="legalMobile != null and legalMobile != ''">
+				legal_mobile = #{legalMobile},
+			</if>
+			<if test="controManInfo != null and controManInfo != ''">
+				contro_man_info = #{controManInfo},
+			</if>
+			<if test="shareholderName1 != null and shareholderName1 != ''">
+				shareholder_name_1 = #{shareholderName1},
+			</if>
+			<if test="shareholderCapital1 != null and shareholderCapital1 != ''">
+				shareholder_capital_1 = #{shareholderCapital1},
+			</if>
+			<if test="shareholderName2 != null and shareholderName2 != ''">
+				shareholder_name_2 = #{shareholderName2},
+			</if>
+			<if test="shareholderCapital2 != null and shareholderCapital2 != ''">
+				shareholder_capital_2 = #{shareholderCapital2},
+			</if>
+			<if test="contacterName != null and contacterName != ''">
+				contacter_name = #{contacterName},
+			</if>
+			<if test="contacterMobile != null and contacterMobile != ''">
+				contacter_mobile = #{contacterMobile},
+			</if>
+			<if test="contacterWechat != null and contacterWechat != ''">
+				contacter_wechat = #{contacterWechat},
+			</if>
+			<if test="contacterPosition != null and contacterPosition != ''">
+				contacter_position = #{contacterPosition},
+			</if>
+			<if test="contacterEmail != null and contacterEmail != ''">
+				contacter_email = #{contacterEmail},
+			</if>
+			<if test="financialReports != null and financialReports != ''">
+				financial_reports = #{financialReports},
+			</if>
+			<if test="auditReport != null and auditReport != ''">
+				audit_report = #{auditReport},
+			</if>
+			<if test="companyCreditReport != null and companyCreditReport != ''">
+				company_credit_report = #{companyCreditReport},
+			</if>
+			<if test="historicalTradeContract != null and historicalTradeContract != ''">
+				historical_trade_contract = #{historicalTradeContract},
+			</if>
+			<if test="other != null and other != ''">
+				other = #{other},
+			</if>
+			<if test="status != null and status != ''">
+				status = #{status},
+			</if>
+			<if test="id != null and id != ''">
+				update_time = #{now()}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<insert id="audit" parameterType="Map">
+		insert into company_audit_info(
+		company_id,
+		status,
+		status_desc,
+		user_id,
+		audit_time)
+		values(
+		#{id},
+		#{status},
+		#{statusDesc},
+		#{auditUserId},
+		#{now()}
+		)
+	</insert>
+
+	<insert id="settleIn" parameterType="Map">
+		insert into company_settle_in(
+		company_name,
+		business_lic,
+		contacter_name,
+		account,
+		mobile,
+		password,
+		create_time)
+		values(
+		#{companyName},
+		#{businessLic},
+		#{contacterName},
+		#{account},
+		#{mobile},
+		#{password},
+		now()
+		)
+	</insert>
+
+	<select id="findConpanyInfoByUserId" parameterType="Long" resultType="com.scf.erdos.factoring.vo.company.CompanyRegisterInfoVo">
+		  SELECT id, STATUS,ca_status,
+			(
+			CASE
+			WHEN company_account IS NOT NULL AND LENGTH(TRIM(company_account))>0  THEN '1'
+			ELSE '0'
+			END) AS company_account
+		  FROM company_info WHERE user_id = #{userId}
+	</select>
+</mapper>

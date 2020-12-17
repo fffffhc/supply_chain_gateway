@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.ProductDao">
+    <insert id="add" parameterType="com.scf.erdos.factoring.model.Product.ProductInfo">
+        insert into product_info(
+            code,
+            name,
+            company_id,
+            business_type,
+            sp_type,
+            flow_type,
+            financing_rate,
+            is_platform_account,
+            repay_remind,
+            is_fapiao_review,
+            chi_factoring,
+            is_credit,
+            is_pcertain,
+            is_pcertain_rate,
+            prepay_rate,
+            prepay_rate_day,
+            over_day_rate,
+            pay_type,
+            interest_pay_day,
+            psc_type,
+            psc_pay,
+            psc_rate,
+            isc_type,
+            isc_pay,
+            isc_rate,
+            introduction,
+            user_id,
+            create_time
+        ) values (
+            #{code},
+            #{name},
+            #{companyId},
+            #{businessType},
+            #{spType},
+            #{flowType},
+            #{financingRate},
+            #{isPlatformAccount},
+            #{repayRemind},
+            #{isFapiaoReview},
+            #{chiFactoring},
+            #{isCredit},
+            #{isPcertain},
+            #{isPcertainRate},
+            #{prepayRate},
+            #{prepayRateDay},
+            #{overDayRate},
+            #{payType},
+            #{interestPayDay},
+            #{pscType},
+            #{pscPay},
+            #{pscRate},
+            #{iscType},
+            #{iscPay},
+            #{iscRate},
+            #{introduction},
+            #{userId},
+            now()
+        )
+    </insert>
+
+    <select id="getProductInfo" parameterType="Integer" resultType="com.scf.erdos.factoring.vo.product.ProductInfoVo">
+        select tt.*,c.company_name financingCompanyName,pdl.name businessTypeName
+        from (
+        select t.* from product_info t
+        where t.id = #{id}) as tt
+        left join company_info c on c.id = tt.company_id
+        left join product_dict_list pdl on pdl.code = tt.business_type and pdl.type = 'p008'
+    </select>
+
+    <sql id="where">
+        <where>
+            <if test="true">
+                and t.is_delete = '0'
+            </if>
+            <if test="userId != null and userId != ''">
+                and t.user_id = #{userId}
+            </if>
+            <if test="companyId != null and companyId != ''">
+                and t.company_id = #{companyId}
+            </if>
+            <if test="status != null and status != ''">
+                and t.status = #{status}
+            </if>
+            <if test="createTime != null and createTime != ''">
+                and DATE_FORMAT(t.create_time,'%Y-%c-%d') = DATE_FORMAT(#{createTime},'%Y-%c-%d')
+            </if>
+        </where>
+    </sql>
+
+    <select id="count" resultType="int">
+        select count(*) from product_info t
+        <include refid="where" />
+    </select>
+
+    <select id="getAllProducts" resultType="com.scf.erdos.factoring.vo.product.ProductPageVo" parameterType="map">
+        SELECT
+        t.id,
+        t.code,
+        t.name,
+        c.company_name,
+        CASE cc.product_id
+        WHEN NULL THEN '0'
+        ELSE '1'
+        END contract,
+        t.status,
+        DATE_FORMAT(t.create_time,'%Y-%c-%d') create_time
+        FROM product_info t
+        LEFT JOIN company_info c ON t.company_id = c.id
+        LEFT JOIN (SELECT product_id FROM product_contract GROUP BY product_id) AS cc  ON t.id =  cc.product_id
+        <include refid="where" />
+        order by t.id desc
+        limit #{currentPage},#{pageSize}
+    </select>
+
+    <insert id="addProductContract" parameterType="com.scf.erdos.factoring.model.Product.ProductContract">
+         insert into product_contract(
+            code,product_id,name,signing_stage,is_order_signing,
+            party_a,party_b,party_c,party_d,party_e,contract_template_id,user_id,create_time
+         )values (
+            #{code},#{productId},#{name},#{signingStage},#{isOrderSigning},
+            #{partyA},#{partyB},#{partyC},#{partyD},#{partyE},#{contractTemplateId},#{userId},now()
+         )
+    </insert>
+
+    <update id="update" parameterType="com.scf.erdos.factoring.model.Product.ProductInfo">
+        update product_info set
+            name = #{name},
+            company_id = #{companyId},
+            business_type = #{businessType},
+            sp_type = #{spType},
+            flow_type = #{flowType},
+            financing_rate = #{financingRate},
+            is_platform_account = #{isPlatformAccount},
+            repay_remind = #{repayRemind},
+            is_fapiao_review = #{isFapiaoReview},
+            chi_factoring = #{chiFactoring},
+            is_credit = #{isCredit},
+            is_pcertain = #{isPcertain},
+            is_pcertain_rate = #{isPcertainRate},
+            prepay_rate = #{prepayRate},
+            prepay_rate_day = #{prepayRateDay},
+            over_day_rate = #{overDayRate},
+            pay_type = #{payType},
+            interest_pay_day = #{interestPayDay},
+            psc_type = #{pscType},
+            psc_pay = #{pscPay},
+            psc_rate = #{pscRate},
+            isc_type = #{iscType},
+            isc_pay = #{iscPay},
+            isc_rate = #{iscRate},
+	        update_user_id = #{updateUserId},
+	        introduction = #{introduction},
+	        update_create_time = NOW()
+        where id = #{id}
+    </update>
+
+    <update id="updateProductContract" parameterType="com.scf.erdos.factoring.model.Product.ProductContract">
+        update product_contract set
+        name = #{name},signing_stage = #{signingStage},is_order_signing = #{isOrderSigning},
+        party_a = #{partyA},party_b = #{partyB},party_c = #{partyC},party_d = #{partyD},party_e = #{partyE},
+        contract_template_id = #{contractTemplateId}
+        where id = #{id}
+    </update>
+
+    <select id="getPlaceholder" parameterType="map" resultType="com.scf.erdos.factoring.vo.product.ProductContractPlaceholder">
+         select t.* from product_contract_placeholder t
+         where 1=1
+            <if test="type != null and type != ''">
+                and t.type = #{type}
+            </if>
+         order by t.id asc
+    </select>
+
+    <select id="exportExcel" parameterType="String" resultType="com.scf.erdos.factoring.vo.product.ExportExcelProducts">
+        select t.id,t.placeholder,t.placeholder_name
+        from product_contract_placeholder t
+        WHERE t.type = #{type} order by id asc
+    </select>
+
+    <select id="getContracts" parameterType="String" resultType="com.scf.erdos.factoring.vo.product.ExportExcelProducts">
+        select t.code,k.contract_name name,t.signing_stage,k.contract_template_url contractUrl from (
+          select * from product_contract
+          where product_id = #{id} and is_delete = false order by id desc
+        ) as t
+        left join product_contract_template k on k.id = t.contract_template_id
+    </select>
+
+</mapper>

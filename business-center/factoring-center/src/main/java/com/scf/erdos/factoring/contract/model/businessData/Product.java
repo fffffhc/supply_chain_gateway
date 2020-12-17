@@ -1,0 +1,54 @@
+package com.scf.erdos.factoring.contract.model.businessData;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+/**
+ * @Description : 产品信息
+ * @author：bao-clm
+ * @date: 2020/8/13
+ * @version：1.0
+ */
+@Data
+public class Product implements Serializable {
+    private Integer id;
+    private String name;//产品名称
+    private String code;//产品编号
+    private String companyId;//资金机构id
+    private Integer financingRate;//融资比例
+    private String businessType;//业务类型
+    private String spType;//支持客户类型（多选已 & 隔开如： 1000&1001&1002）
+    private String flowType;//融资方流程类型
+    private Boolean isPlatformAccount;//是否平台账户（false，否；true，是）
+    private String repayRemind;//还款到期提醒（多选已 & 隔开如： 1000&1001&1002）
+    private Boolean isFapiaoReview;//是否发票验真（false，否；true，是）
+    private Boolean chiFactoring;//是否池保理（false，否；true，是）
+    private Boolean isCredit;//授信流程（false，无；true，有）
+    private Boolean isPcertain;//是否按产品确定利率（false，否；true，是）
+    private Integer isPcertainRate;//利率（%年化）
+    private Integer prepayRate;//提前还款罚息日利率（%）
+    private Integer prepayRateDay;//宽限日
+    private Integer overDayRate;//逾期罚息日利率（%）
+    private String payType;//还款方式
+    private Integer interestPayDay;//换息日（每月）
+    private String pscType;//平台服务费-方式
+    private String pscPay;//平台服务费-付费方
+    private Integer pscRate;//平台服务费-服务费率
+    private String iscType;//信息服务费-方式
+    private String iscPay;//信息服务费-付费方
+    private Integer iscRate;//信息服务费-服务费率
+    private String introduction;//产品说明
+    private Boolean status;//状态
+    private Boolean isDelete;//是否删除
+    private Long userId;//创建人id
+    private Long updateUserId;//修改人id
+    private String createTime;//创建时间
+
+    /**
+     * 产品编号
+     */
+    private String head; //编号头部（资本运营保理 首字母大写）
+    private String type; //类型（资本 F）
+    private String productType; //产品类型
+}

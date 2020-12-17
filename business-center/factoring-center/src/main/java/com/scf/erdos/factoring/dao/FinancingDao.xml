@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.FinancingDao">
+
+    <sql id="where">
+        <where>
+            <if test="financingCode != null and financingCode != ''">
+                and t.code = #{financingCode}
+            </if>
+            <if test="customerName != null and customerName != ''">
+                and t.customer_company_id in
+                (select id from company_info where company_name like concat('%', #{customerName}, '%'))
+            </if>
+            <if test="buyerCompany != null and buyerCompany != ''">
+                and t.buyer_company like concat('%', #{buyerCompany}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and t.status = #{status}
+            </if>
+            <if test="receivableCode != null and receivableCode != ''">
+                and t.receivable_id = (select id from receivable_info where code = #{receivableCode})
+            </if>
+        </where>
+    </sql>
+
+    <select id="count" resultType="int">
+        select count(*) from financing_info t
+        <include refid="where" />
+    </select>
+
+    <select id="getFinancingPages" resultType="com.scf.erdos.factoring.vo.financing.FinancingPageVo" parameterType="map">
+        SELECT sub.id,sub.code,sub.amount_financing,sub.financing_rate,sub.factoring_service_rate,
+        sub.status,sub.apply_time,p.name productName,sub.business_type,sub.buyer_company buyerCompanyName,pc.code creditCode,cw.flow_info FROM (
+        SELECT t.* FROM financing_info t
+        <include refid="where" />
+        ) AS sub
+        LEFT JOIN product_info p ON p.id = sub.product_id
+        LEFT JOIN product_credit pc ON pc.id = sub.credit_id
+        LEFT JOIN company_workflow cw ON cw.company_id = sub.funding_company_id AND cw.status = '1'
+    </select>
+
+    <select id="getFinancingInfo" parameterType="map" resultType="com.scf.erdos.factoring.vo.financing.FinancingInfoVo">
+          SELECT t.* FROM financing_info t where t.id = #{id}
+    </select>
+
+    <select id="getCompanyInfo" resultType="com.scf.erdos.factoring.vo.company.CompanyInfoVo" parameterType="Integer">
+        select * from company_info where id = (select customer_company_id from financing_info where id = #{id})
+    </select>
+
+    <select id="getDsFinancingsList" resultType="com.scf.erdos.factoring.vo.financing.DSFinancings" parameterType="map">
+         select sub.id,sub.code,p.name productName,sub.financing_end_time,
+                (sub.amount_financing - (select sum(money) from financing_pay_back where financing_id = #{id})) balance
+         from (
+            select id,code,product_id,amount_financing,financing_end_time
+            from  financing_info
+            where status in (5,8,9) and customer_company_id = #{customerCompanyId} and funding_company_id = #{fundingCompanyId}
+         ) as sub
+         left join product_info p on p.id = sub.product_id
+    </select>
+
+    <update id="addAuditInfo" parameterType="com.scf.erdos.factoring.model.financing.Financing">
+         update financing_info
+            <set>
+                <if test="customerLevel != null and customerLevel != ''">
+                    customer_level = #{customerLevel},
+                </if>
+                <if test="receivableTime != null and receivableTime != ''">
+                    receivable_time = #{receivableTime},
+                </if>
+                <if test="planInterestTime != null and planInterestTime != ''">
+                    plan_interest_time = #{planInterestTime},
+                </if>
+                <if test="financingEndTime != null and financingEndTime != ''">
+                    financing_end_time = #{financingEndTime},
+                </if>
+                <if test="factoringServiceRate != null and factoringServiceRate != ''">
+                    factoring_service_rate = #{factoringServiceRate},
+                </if>
+                <if test="financingRate != null and financingRate != ''">
+                    financing_rate = #{financingRate},
+                </if>
+                <if test="factoringService != null and factoringService != ''">
+                    factoring_service = #{factoringService},
+                </if>
+                <if test="platformService != null and platformService != ''">
+                    platform_service = #{platformService},
+                </if>
+                <if test="overMoney != null and overMoney != ''">
+                    over_money = #{overMoney},
+                </if>
+                <if test="prepayRateDay != null and prepayRateDay != ''">
+                    prepay_rate_day = #{prepayRateDay},
+                </if>
+                <if test="buyBond != null and buyBond != ''">
+                    buy_bond = #{buyBond},
+                </if>
+                <if test="loanMoney != null and loanMoney != ''">
+                    loan_money = #{loanMoney},
+                </if>
+                <if test="companyAccount != null and companyAccount != ''">
+                    company_account = #{companyAccount},
+                </if>
+                <if test="accountName != null and accountName != ''">
+                    account_name = #{accountName},
+                </if>
+                <if test="bankBranch != null and bankBranch != ''">
+                    bank_branch = #{bankBranch},
+                </if>
+                <if test="bankNum != null and bankNum != ''">
+                    bank_num = #{bankNum},
+                </if>
+                <if test="checkFile != null and checkFile != ''">
+                    check_file = #{checkFile},
+                </if>
+                <if test="status != null and status != ''">
+                    status = #{status}
+                </if>
+            </set>
+        where id = #{id}
+    </update>
+
+    <insert id="saveOtherPlatfrom" parameterType="com.scf.erdos.factoring.model.financing.Financing" >
+        insert into financing_other_platfrom
+        ( product_name,financing_money,balance,financing_id)
+        values
+        <foreach collection="dsOtherFinancingsList" item="item" index="index" separator=",">
+            (
+            #{item.productName},
+            #{item.financingMoney},
+            #{item.balance},
+            #{id}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="savePledgeBill" parameterType="com.scf.erdos.factoring.model.financing.Financing" >
+        insert into financing_pledge_bill
+        ( num,bill_money,user_name,end_time,financing_id)
+        values
+        <foreach collection="dsPledgeBillList" item="item" index="index" separator=",">
+            (
+            #{item.num},
+            #{item.billMoney},
+            #{item.userName},
+            #{item.endTime},
+            #{id}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getFinancingTimes" parameterType="Integer" resultType="Integer">
+        select count(*) from financing_info where
+        credit_id =
+        (select credit_id from financing_info where id = #{financingId})
+        and status in (3,4,5,6,8,9)
+    </select>
+
+</mapper>

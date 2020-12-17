@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.PayDao">
+
+	<sql id="where">
+		<where>
+			t.status = '4'
+			<if test="code != null and code != ''">
+				and t.code = #{code}
+			</if>
+			<if test="companyName != null and companyName != ''">
+				and t.company_name like concat('%', #{companyName}, '%')
+			</if>
+			<if test="applyTime != null and applyTime != ''">
+				and DATE_FORMAT(t.apply_time,'%Y-%m-%d %H:%i:%S') = DATE_FORMAT(#{applyTime},'%Y-%m-%d %H:%i:%S')
+			</if>
+		</where>
+	</sql>
+
+	<select id="countforPay" resultType="int" parameterType="map">
+		select count(*) from financing_info t
+		<include refid="where" />
+	</select>
+
+	<select id="getPendingLondInformation" resultType="com.scf.erdos.factoring.vo.pay.PendingLondInformationVo">
+		select kk.*,ci.company_name,pi.name product_name from (
+		select
+		t.id,
+		t.credit_id,
+		t.code,
+		t.business_type,
+		t.buyer_company,
+		t.amount_financing,
+		t.loan_money,
+		t.apply_time,
+		t.customer_company_id,
+		t.product_id,
+		t.status
+		from financing_info t
+		<include refid="where" />
+		order by t.apply_time asc
+		limit #{currentPage},#{pageSize}
+		) as kk
+		left join company_info ci on kk.customer_company_id = ci.id
+		left join product_info pi on kk.product_id = pi.id
+
+	</select>
+
+	<select id="getPaymentNote" resultType="com.scf.erdos.factoring.vo.pay.PaymentNoteVo">
+		select t.* from pay_payment_note t
+		where t.financing_code = #{financingCode}
+	</select>
+
+	<insert id="saveRepaymentPlan" parameterType="List" >
+		insert into pay_plan
+		( financing_code,period,pay_date,total_repayment,principal_repayment,interest_repayment,explain,create_time)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+			#{item.financingCode},
+			#{item.period},
+			#{item.payDate},
+			#{item.totalRepayment},
+			#{item.principalRepayment},
+			#{item.interestRepayment},
+			#{item.explain},
+			now()
+			)
+		</foreach>
+	</insert>
+
+	<insert id="savePaymentNote" parameterType="com.scf.erdos.factoring.vo.pay.PaymentNoteVo" >
+		insert into pay_payment_note(
+			code,payment_department,admin_name,financing_code,plan_pay_date,plan_amount,factoring_contract_code,
+			financing_times,receivable_contract_code,amount_financing,factoring_service_rate,factoring_service,
+			financing_rate,financing_rate_amount,buy_bond,loan_money,company_name,bank_name,bank_account,remarks,
+			business_operator,business_manager,general_manager,business_vice_president,finance_manager,
+			risk_manager,financial_review,fund_management_post,create_time
+		) VALUES (
+	        #{code},#{paymentDepartment},#{adminName},#{financingCode},#{planPayDate},#{planAmount},
+            #{factoringContractCode},#{financingTimes},#{receivableContractCode},#{amountFinancing},
+    		#{factoringServiceRate},#{factoringService},#{financingRate},#{financingRateAmount},#{buyBond},#{loanMoney},
+    		#{companyName},#{bankName},#{bankAccount},#{remarks},#{businessOperator},#{businessManager},#{generalManager},
+    		#{businessVicePresident},#{financeManager},#{riskManager},#{financialReview},#{fundManagementPost},
+    		now()
+		)
+	</insert>
+</mapper>

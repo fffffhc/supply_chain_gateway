@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scf.erdos.factoring.dao.FinancingStartDao">
+
+    <select id="getProductCredits" parameterType="map" resultType="com.scf.erdos.factoring.vo.financing.ProductCredits">
+        select tt.*,(tt.credit_line - tt.onlineFinancing - tt.toBeRepaid) availableCreditLine from (
+        select t.id,t.code,p.name productName,c.company_name fundingCompanyName,t.credit_line,
+               mm.onlineFinancing,nn.toBeRepaid,t.apply_time,t.credit_end_time,t.status
+               from product_credit t
+               left join product_info p on p.id = t.product_id
+               left join company_info c on c.id = t.funding_company_id
+               left join (SELECT m.product_id,SUM(m.amount_financing) onlineFinancing FROM financing_info m WHERE m.status IN (0,1,2,3,4)) as mm on t.product_id = mm.product_id
+               left join (SELECT n.product_id,SUM(n.amount_financing) toBeRepaid FROM financing_info n WHERE n.status IN (7,3,4)) as nn on t.product_id = nn.product_id
+        where t.customer_company_id = #{companyId} AND t.status = '3') tt
+    </select>
+
+
+    <sql id="where">
+        <where>
+            t.status = TRUE
+            AND t.is_delete = FALSE
+            <!-- 产品支持客户类型（1000 - 平台企业客户;1001 - 渠道个人客户;1002 - 渠道企业客户）-->
+            AND LOCATE((SELECT source_type FROM  company_info WHERE id = #{companyId}),t.sp_type)
+        </where>
+    </sql>
+
+    <select id="count" resultType="int">
+        select count(*) from product_info t
+        <include refid="where" />
+    </select>
+
+    <select id="getFinancingProducts" parameterType="map" resultType="com.scf.erdos.factoring.vo.financing.ProductsVo">
+        select tt.id,tt.code,tt.name productName,c.company_name financingCompany,tt.introduction,k.status
+        from (
+        SELECT t.* FROM product_info t
+        <include refid="where" />
+        order by t.id desc
+        limit #{currentPage},#{pageSize}
+        ) as tt
+        LEFT JOIN company_info c ON tt.company_id = c.id
+        LEFT JOIN (
+            <!-- 获取融资方产品授信最新情况 -->
+            SELECT * FROM (
+                SELECT DISTINCT product_id,STATUS FROM product_credit
+                WHERE customer_company_id = #{companyId} AND STATUS != '4'
+                ORDER BY id DESC) s GROUP BY s.product_id) AS k ON tt.id = k.product_id
+    </select>
+
+    <select id="getCreditStatus" parameterType="map" resultType="com.scf.erdos.factoring.vo.financing.ProductCredits">
+        SELECT * from (
+            <!-- 授信申请状态 -->
+            (SELECT status FROM product_credit
+            WHERE customer_company_id = #{customerCompanyId}
+            AND product_id = #{productId} ORDER BY id DESC LIMIT 1) as status,
+            <!-- 在途融资申请 -->
+            (select SUM(amount_financing) onlineFinancing from financing_info
+            where status IN (0,1,2,3,4) and product_id = #{productId} and customer_company_id = #{customerCompanyId}) as onlineFinancing,
+            <!-- 待还款融资 -->
+            (select SUM(amount_financing) toBeRepaid from financing_info
+            where status IN (7,3,4) and product_id = #{productId} and customer_company_id = #{customerCompanyId}) as toBeRepaid
+        )
+    </select>
+
+    <select id="getAppliFinancingVo" parameterType="Integer" resultType="com.scf.erdos.factoring.vo.financing.AppliFinancingVo">
+          select t.id productId,c.company_name fundingCompanyName,
+            t.name productName,t.pay_type,t.interest_pay_day
+          from product_info t
+          left join company_info c on c.id = t.company_id
+          where t.id = #{productId}
+    </select>
+
+    <select id="getReceivable" parameterType="String" resultType="com.scf.erdos.factoring.vo.financing.Receivable">
+          select  t.id,t.code,t.tag from receivable_info t
+          where t.company_id = #{productId} and t.status = false
+    </select>
+
+    <insert id="saveFinancingInfo" parameterType="com.scf.erdos.factoring.model.financing.FinancingSave">
+        insert into financing_info(
+            funding_company_id,
+            product_id,
+            code,
+            receivable_id,
+            buyer_company,
+            transfer_financing,
+            detailes,
+            customer_company_id,
+            user_id,
+            apply_time)
+            values
+            (
+            #{fundingCompanyId},
+            #{productId},
+            #{code},
+            #{receivableId},
+            #{rBuyerCompanyName},
+            #{transferFinancing},
+            #{detailes},
+            #{companyId},
+            #{userId},
+            now()
+            )
+    </insert>
+</mapper>
